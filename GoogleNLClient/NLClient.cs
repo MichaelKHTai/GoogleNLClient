@@ -84,21 +84,31 @@ namespace GoogleNLClient
             {
                 content = content.Substring(0,1000);
             }
-            var response = await client.AnalyzeSyntaxAsync(new Document()
-            {
-                Content = content,
-                Type = Document.Types.Type.PlainText
-            });
             List<string> current_data = new List<string>();
-            foreach (var syntax in response.Tokens)
+            try
             {
-                Regex pattern = new Regex(@"\W+$");
-                string word = pattern.Replace(syntax.Lemma, "").ToLower();
-                if (word != "")
+                var response = await client.AnalyzeSyntaxAsync(new Document()
                 {
-                    current_data.Add(word);
+                    Content = content,
+                    Type = Document.Types.Type.PlainText
+                });
+                
+                foreach (var syntax in response.Tokens)
+                {
+                    Regex pattern = new Regex(@"\W+$");
+                    string word = pattern.Replace(syntax.Lemma, "").ToLower();
+                    if (word != "")
+                    {
+                        current_data.Add(word);
+                    }
                 }
             }
+            catch
+            {
+                var err = element.self;
+                Console.WriteLine("Language not support: " + content);
+            }
+            
             NLData r = new NLData();
             r.words = current_data.ToArray();
             r.self = element.self;
